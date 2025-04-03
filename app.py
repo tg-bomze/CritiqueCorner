@@ -2,23 +2,22 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import json
 import os
 import hashlib
-from datetime import datetime, timezone # Import timezone
+from datetime import datetime, timezone
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24) # Needed for session management
+app.secret_key = os.urandom(24)
 
 DATA_DIR = 'data'
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 
-# --- Helper Functions ---
+# --- Functions ---
 
 def load_users():
     """Loads user data from the JSON file."""
     if not os.path.exists(USERS_FILE):
-        return {} # Return empty dict if file doesn't exist
+        return {} 
     try:
         with open(USERS_FILE, 'r') as f:
-            # Handle empty or invalid JSON file
             content = f.read()
             if not content:
                 return {}
@@ -29,7 +28,7 @@ def load_users():
 def save_users(users):
     """Saves user data to the JSON file."""
     os.makedirs(DATA_DIR, exist_ok=True)
-    with open(USERS_FILE, 'w', encoding='utf-8') as f: # Add encoding
+    with open(USERS_FILE, 'w', encoding='utf-8') as f:
         json.dump(users, f, indent=4, ensure_ascii=False)
 
 def load_feedback(username):
@@ -50,7 +49,7 @@ def save_feedback(username, feedback_list):
     """Saves feedback for a specific user."""
     os.makedirs(DATA_DIR, exist_ok=True)
     feedback_file = os.path.join(DATA_DIR, f'feedback_{username}.json')
-    with open(feedback_file, 'w', encoding='utf-8') as f: # Add encoding
+    with open(feedback_file, 'w', encoding='utf-8') as f:
         json.dump(feedback_list, f, indent=4, ensure_ascii=False)
 
 def hash_password(password):
@@ -63,13 +62,11 @@ def hash_password(password):
 def index():
     """Renders the main page."""
     users = load_users()
-    registered_usernames = list(users.keys()) # Get list of usernames for the dropdown
+    registered_usernames = list(users.keys()) 
     
     user_feedback = []
     if 'username' in session:
         user_feedback = load_feedback(session['username'])
-        # No need to sort here anymore, as feedback is saved newest first
-        # user_feedback.sort(key=lambda x: x.get('date', ''), reverse=True)
         
     return render_template('index.html', 
                            registered_usernames=registered_usernames,
@@ -111,14 +108,14 @@ def login():
         flash('Invalid username or password.', 'error')
         return redirect(url_for('index'))
 
-    session['username'] = username # Store username in session
+    session['username'] = username 
     flash('Login successful!', 'success')
     return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
     """Logs the user out."""
-    session.pop('username', None) # Remove username from session
+    session.pop('username', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
@@ -141,10 +138,10 @@ def submit_feedback():
     utc_now = datetime.now(timezone.utc)
 
     new_feedback = {
-        'date': utc_now.date().isoformat(), # Save only date (YYYY-MM-DD) in UTC
+        'date': utc_now.date().isoformat(),
         'text': feedback_text
     }
-    # Insert new feedback at the beginning of the list (index 0)
+
     feedback_list.insert(0, new_feedback)
     save_feedback(target_username, feedback_list)
 
@@ -159,13 +156,11 @@ def delete_account():
 
     username_to_delete = session['username']
     
-    # 1. Delete user from users.json
     users = load_users()
     if username_to_delete in users:
         del users[username_to_delete]
         save_users(users)
 
-    # 2. Delete feedback file
     feedback_file = os.path.join(DATA_DIR, f'feedback_{username_to_delete}.json')
     if os.path.exists(feedback_file):
         try:
@@ -173,15 +168,12 @@ def delete_account():
         except OSError as e:
             flash(f'Error deleting feedback file: {e}', 'error')
             print(f"Error deleting {feedback_file}: {e}")
-            # Still proceed to logout even if file deletion fails
 
-    # 3. Log the user out
     session.pop('username', None)
     flash('Your account has been successfully deleted.', 'success')
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    # Create the users file if it doesn't exist
     if not os.path.exists(USERS_FILE):
         save_users({})
     app.run(debug=False)

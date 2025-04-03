@@ -3,90 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Negative Feedback</title>
+    <title>Critique Corner</title>
     <style>
         :root {
-            --bg-color: #222;
-            --text-color: #eee;
-            --border-color: #444;
-            --form-bg: #333;
-            --input-bg: #444;
-            --input-border: #555;
-            --button-bg: #007bff;
-            --button-hover-bg: #0056b3;
-            --button-delete-bg: #dc3545;
-            --button-delete-hover-bg: #c82333;
-            --link-color: #6cb2ff;
-            --error-bg: #721c24;
-            --success-bg: #155724;
-            --info-bg: #0c5460;
-            --feedback-item-bg: #3a3a3a;
-            --feedback-border: #555;
-            --login-header-bg: #0c5460; /* Using info color */
-            --register-header-bg: #155724; /* Using success color */
+            --bg-color: #1a1a1d;
+            --text-color: #f5f5f5;
+            --border-color: #43434c;
+            --form-bg: #2c2c34;
+            --input-bg: #3a3a42;
+            --input-border: #50505a;
+            --input-focus-border: #8a4fff;
+            --button-bg: #6f22c9;
+            --button-hover-bg: #5a1ca0;
+            --button-delete-bg: #c9225d;
+            --button-delete-hover-bg: #a01c4a;
+            --link-color: #8a4fff;
+            --error-bg: #7a1e3a;
+            --success-bg: #1e7a4f;
+            --info-bg: #1e5a7a;
+            --feedback-item-bg: #2f2f37;
+            --feedback-border: #484852;
+            --login-header-bg: #4a1e7a;
+            --register-header-bg: #7a1e4f;
+            --column-gap: 30px;
         }
 
         body {
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             min-height: 100vh;
             margin: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
-            padding-top: 60px; /* Add padding to prevent content overlap by fixed flash */
+            padding-top: 70px;
+            gap: var(--column-gap);
+            padding-left: var(--column-gap);
+            padding-right: var(--column-gap);
+            box-sizing: border-box;
         }
-        /* Flash Message Container - Fixed Top */
+
+
         #flash-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             z-index: 1000;
-            padding: 10px 20px;
-            box-sizing: border-box; /* Include padding in width */
+            padding: 15px var(--column-gap);
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Center messages horizontally */
+            align-items: center;
+            pointer-events: none;
         }
         .flash-messages {
             padding: 0;
             list-style: none;
-            width: 100%; /* Take full width */
-            max-width: 600px; /* Optional: Max width for messages */
+            width: 100%;
+            max-width: 600px;
         }
         .flash-messages li {
-            padding: 12px 18px;
+            padding: 15px 20px;
             margin-bottom: 10px;
-            border-radius: 4px;
+            border-radius: 6px;
             color: #fff;
             opacity: 1;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            font-weight: 500;
+            pointer-events: auto;
+            transform: translateY(0);
         }
         .flash-messages li.fade-out {
             opacity: 0;
+            transform: translateY(-20px);
         }
+        .flash-success { background-color: var(--success-bg); }
+        .flash-error { background-color: var(--error-bg); }
+        .flash-info { background-color: var(--info-bg); }
+
+
         .column {
             flex: 1;
-            padding: 20px;
-            border-right: 1px solid var(--border-color);
+            padding: 0;
+
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 60px); /* Set fixed height based on viewport minus padding-top */
-            overflow-y: auto; /* Add scrolling if content overflows */
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            padding-bottom: 20px;
         }
-        .column:last-child {
-            border-right: none;
+
+        .column::-webkit-scrollbar {
+            width: 8px;
         }
+        .column::-webkit-scrollbar-track {
+            background: var(--form-bg);
+            border-radius: 4px;
+        }
+        .column::-webkit-scrollbar-thumb {
+            background-color: var(--input-border);
+            border-radius: 4px;
+            border: 2px solid var(--form-bg);
+        }
+        .column::-webkit-scrollbar-thumb:hover {
+            background-color: var(--border-color);
+        }
+
+
         .form-section {
-            margin-bottom: 20px;
-            padding: 15px;
+            margin-bottom: 25px;
+            padding: 25px;
             border: 1px solid var(--border-color);
-            border-radius: 5px;
+            border-radius: 8px;
             background-color: var(--form-bg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
         }
-        /* For the left column, make the form take remaining height */
+
         .column:first-child .form-section {
             flex-grow: 1;
             display: flex;
@@ -99,141 +133,220 @@
         }
         .column:first-child textarea {
             flex-grow: 1;
-            min-height: 150px; /* Set minimum height */
+            min-height: 200px;
         }
+
+
         h2 {
-             margin-top: 0;
+             margin-top: 10px;
+             margin-bottom: 30px;
+             padding-bottom: 15px;
              border-bottom: 1px solid var(--border-color);
-             padding-bottom: 10px;
-             margin-bottom: 25px; /* More space below main titles */
              color: var(--text-color);
-             text-align: center; /* Center main titles */
+             text-align: center;
+             font-weight: 300;
+             font-size: 1.8em;
         }
          h3 {
-            margin: -15px -15px 15px -15px; /* Extend background to edges of padding */
-            padding: 10px 15px;
+            margin: -25px -25px 20px -25px;
+            padding: 12px 25px;
             border-bottom: 1px solid var(--border-color);
-            border-radius: 5px 5px 0 0; /* Rounded top corners */
+            border-radius: 8px 8px 0 0;
             color: var(--text-color);
-            font-size: 1.1em;
+            font-size: 1.2em;
+            font-weight: 500;
          }
+
+
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: var(--text-color);
+            font-size: 0.95em;
+            font-weight: 500;
         }
         input[type="text"],
         input[type="password"],
         select,
         textarea {
-            width: 95%;
-            padding: 10px;
-            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 15px;
+            margin-bottom: 15px;
             border: 1px solid var(--input-border);
-            border-radius: 3px;
+            border-radius: 5px;
             background-color: var(--input-bg);
             color: var(--text-color);
+            font-size: 1em;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 2px rgba(138, 79, 255, 0.3);
         }
         textarea {
-            min-height: 100px;
+            min-height: 120px;
             resize: vertical;
         }
-        button {
-            padding: 10px 15px;
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23f5f5f5'%3E%3Cpath fill-rule='evenodd' d='M8 11.5a.5.5 0 0 1-.354-.146l-4-4a.5.5 0 0 1 .708-.708L8 10.293l3.646-3.647a.5.5 0 0 1 .708.708l-4 4A.5.5 0 0 1 8 11.5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px 16px;
+            padding-right: 40px;
+        }
+
+
+        button, .logout-btn {
+            padding: 12px 20px;
             background-color: var(--button-bg);
             color: white;
             border: none;
-            border-radius: 3px;
+            border-radius: 5px;
             cursor: pointer;
-            margin-top: 5px; /* Add some space above buttons */
+            margin-top: 10px;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+            text-align: center;
         }
-        button:hover {
+        button:hover, .logout-btn:hover {
             background-color: var(--button-hover-bg);
+            transform: translateY(-1px);
         }
+        button:active, .logout-btn:active {
+            transform: translateY(0px);
+        }
+
+
         ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
+        .feedback-list {
+            margin-top: 20px;
+            background-color: var(--form-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+             box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+         .feedback-list h3 {
+            margin: -20px -20px 20px -20px;
+            padding: 12px 20px;
+            border-radius: 8px 8px 0 0;
+         }
         .feedback-list li {
             background-color: var(--feedback-item-bg);
             border: 1px solid var(--feedback-border);
-            padding: 10px 15px;
-            margin-bottom: 8px;
-            border-radius: 3px;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-radius: 6px;
             word-wrap: break-word;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            line-height: 1.5;
+        }
+        .feedback-list li:last-child {
+            margin-bottom: 0;
         }
         .feedback-list .date {
             display: block;
-            font-size: 0.8em;
+            font-size: 0.85em;
             color: #aaa;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
-        .flash-success { background-color: var(--success-bg); border: 1px solid darken(var(--success-bg), 10%); }
-        .flash-error { background-color: var(--error-bg); border: 1px solid darken(var(--error-bg), 10%);}
-        .flash-info { background-color: var(--info-bg); border: 1px solid darken(var(--info-bg), 10%);}
+        .feedback-list p {
+            text-align: center;
+            color: #aaa;
+            padding: 20px 0;
+        }
+
+
         .user-actions {
-            display: flex; /* Align buttons horizontally */
+            display: flex;
             align-items: center;
+            gap: 10px;
         }
         .logout-btn {
-             background-color: #6c757d;
+             background-color: #5a5a66;
              color: white;
              text-decoration: none;
-             padding: 8px 12px;
-             border-radius: 3px;
-             display: inline-block;
-             border: none;
-             margin-left: 10px;
-             line-height: normal; /* Ensure text is vertically centered */
-             height: 36px; /* Match button height */
+             padding: 10px 15px;
+             line-height: normal;
+             height: auto;
+             display: inline-flex;
+             align-items: center;
              box-sizing: border-box;
+             margin-left: 0;
+        }
+        .logout-btn:hover {
+            background-color: #484854;
+            transform: translateY(-1px);
         }
         .delete-btn {
             background-color: var(--button-delete-bg);
-            margin-left: 10px;
-            padding: 8px 12px; /* Match logout link padding */
-            height: 36px; /* Match logout link height */
-            font-size: inherit; /* Match surrounding text size */
+            margin-left: 0;
+             padding: 10px 15px;
+             height: auto;
+             font-size: inherit;
         }
         .delete-btn:hover {
             background-color: var(--button-delete-hover-bg);
+            transform: translateY(-1px);
         }
-        .logout-btn:hover {
-            background-color: #5a6268;
-        }
+
+
         .welcome-message {
-             margin-bottom: 20px;
-             font-size: 1.1em;
-             padding-bottom: 15px;
+             margin-bottom: 25px;
+             padding-bottom: 20px;
              border-bottom: 1px solid var(--border-color);
              display: flex;
              justify-content: space-between;
              align-items: center;
+             font-size: 1.1em;
         }
+        .welcome-message strong {
+            color: var(--link-color);
+            font-weight: 600;
+        }
+
+
         .toggle-link {
             color: var(--link-color);
             cursor: pointer;
-            text-decoration: underline;
+            text-decoration: none;
             display: block;
             margin-top: 15px;
             font-size: 0.9em;
+            text-align: center;
+            transition: color 0.2s ease;
         }
+        .toggle-link:hover {
+             color: #a17fff; /* Approximate lighter color */
+            text-decoration: underline;
+        }
+
+
         #register-form {
             display: none;
         }
-        /* Login/Register Specific Styles */
+
+
         .login-section h3 {
             background-color: var(--login-header-bg);
-            text-align: left;
+            text-align: center;
         }
-
          .register-section h3 {
              background-color: var(--register-header-bg);
-             text-align: right;
+             text-align: center;
          }
 
-        /* Removed alignment/width rules from .login-section and .register-section */
-        /* The forms will now take default width within the column */
     </style>
 </head>
 <body>
