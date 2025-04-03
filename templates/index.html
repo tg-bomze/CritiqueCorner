@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Negative Feedback</title>
+    <style>
+        :root {
+            --bg-color: #222;
+            --text-color: #eee;
+            --border-color: #444;
+            --form-bg: #333;
+            --input-bg: #444;
+            --input-border: #555;
+            --button-bg: #007bff;
+            --button-hover-bg: #0056b3;
+            --button-delete-bg: #dc3545;
+            --button-delete-hover-bg: #c82333;
+            --link-color: #6cb2ff;
+            --error-bg: #721c24;
+            --success-bg: #155724;
+            --info-bg: #0c5460;
+            --feedback-item-bg: #3a3a3a;
+            --feedback-border: #555;
+            --login-header-bg: #0c5460; /* Using info color */
+            --register-header-bg: #155724; /* Using success color */
+        }
+
+        body {
+            font-family: sans-serif;
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-top: 60px; /* Add padding to prevent content overlap by fixed flash */
+        }
+        /* Flash Message Container - Fixed Top */
+        #flash-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 10px 20px;
+            box-sizing: border-box; /* Include padding in width */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center messages horizontally */
+        }
+        .flash-messages {
+            padding: 0;
+            list-style: none;
+            width: 100%; /* Take full width */
+            max-width: 600px; /* Optional: Max width for messages */
+        }
+        .flash-messages li {
+            padding: 12px 18px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            color: #fff;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .flash-messages li.fade-out {
+            opacity: 0;
+        }
+        .column {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 60px); /* Set fixed height based on viewport minus padding-top */
+            overflow-y: auto; /* Add scrolling if content overflows */
+        }
+        .column:last-child {
+            border-right: none;
+        }
+        .form-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--form-bg);
+        }
+        /* For the left column, make the form take remaining height */
+        .column:first-child .form-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .column:first-child form {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .column:first-child textarea {
+            flex-grow: 1;
+            min-height: 150px; /* Set minimum height */
+        }
+        h2 {
+             margin-top: 0;
+             border-bottom: 1px solid var(--border-color);
+             padding-bottom: 10px;
+             margin-bottom: 25px; /* More space below main titles */
+             color: var(--text-color);
+             text-align: center; /* Center main titles */
+        }
+         h3 {
+            margin: -15px -15px 15px -15px; /* Extend background to edges of padding */
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 5px 5px 0 0; /* Rounded top corners */
+            color: var(--text-color);
+            font-size: 1.1em;
+         }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+        input[type="text"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 3px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 5px; /* Add some space above buttons */
+        }
+        button:hover {
+            background-color: var(--button-hover-bg);
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        .feedback-list li {
+            background-color: var(--feedback-item-bg);
+            border: 1px solid var(--feedback-border);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 3px;
+            word-wrap: break-word;
+        }
+        .feedback-list .date {
+            display: block;
+            font-size: 0.8em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        .flash-success { background-color: var(--success-bg); border: 1px solid darken(var(--success-bg), 10%); }
+        .flash-error { background-color: var(--error-bg); border: 1px solid darken(var(--error-bg), 10%);}
+        .flash-info { background-color: var(--info-bg); border: 1px solid darken(var(--info-bg), 10%);}
+        .user-actions {
+            display: flex; /* Align buttons horizontally */
+            align-items: center;
+        }
+        .logout-btn {
+             background-color: #6c757d;
+             color: white;
+             text-decoration: none;
+             padding: 8px 12px;
+             border-radius: 3px;
+             display: inline-block;
+             border: none;
+             margin-left: 10px;
+             line-height: normal; /* Ensure text is vertically centered */
+             height: 36px; /* Match button height */
+             box-sizing: border-box;
+        }
+        .delete-btn {
+            background-color: var(--button-delete-bg);
+            margin-left: 10px;
+            padding: 8px 12px; /* Match logout link padding */
+            height: 36px; /* Match logout link height */
+            font-size: inherit; /* Match surrounding text size */
+        }
+        .delete-btn:hover {
+            background-color: var(--button-delete-hover-bg);
+        }
+        .logout-btn:hover {
+            background-color: #5a6268;
+        }
+        .welcome-message {
+             margin-bottom: 20px;
+             font-size: 1.1em;
+             padding-bottom: 15px;
+             border-bottom: 1px solid var(--border-color);
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+        }
+        .toggle-link {
+            color: var(--link-color);
+            cursor: pointer;
+            text-decoration: underline;
+            display: block;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        #register-form {
+            display: none;
+        }
+        /* Login/Register Specific Styles */
+        .login-section h3 {
+            background-color: var(--login-header-bg);
+            text-align: left;
+        }
+
+         .register-section h3 {
+             background-color: var(--register-header-bg);
+             text-align: right;
+         }
+
+        /* Removed alignment/width rules from .login-section and .register-section */
+        /* The forms will now take default width within the column */
+    </style>
+</head>
+<body>
+
+    <!-- Flash Message Container -->
+    <div id="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="flash-{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="column">
+        <h2>Anonymous feedback area</h2>
+        <div class="form-section">
+            <form action="{{ url_for('submit_feedback') }}" method="post">
+                 {# No h3 needed here as per original design #}
+                <label for="target_username">Select User:</label>
+                <select name="target_username" id="target_username" required>
+                    <option value="" disabled selected>-- Select a user --</option>
+                    {% for username in registered_usernames %}
+                        <option value="{{ username }}">{{ username }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="feedback_text">Feedback:</label>
+                <textarea name="feedback_text" id="feedback_text" required></textarea>
+
+                <button type="submit">Submit Feedback</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="column">
+        <h2>Personal reading area</h2>
+
+        {# NOTE: Flash messages moved to top container #}
+
+        {% if 'username' in session %}
+            {# Logged-in User View #}
+            <div class="welcome-message">
+                <span>Welcome, <strong>{{ session['username'] }}</strong>!</span>
+                 <div class="user-actions">
+                     <form action="{{ url_for('delete_account') }}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+                        <button type="submit" class="delete-btn">Delete Account</button>
+                     </form>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <h3>Feedback About You</h3>
+            <div class="feedback-list">
+                {% if user_feedback %}
+                    <ul>
+                        {% for feedback_item in user_feedback %}
+                            <li>
+                                <span class="date">{{ feedback_item.date }}</span> {# Display date #}
+                                {{ feedback_item.text }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>You have not received any feedback yet.</p>
+                {% endif %}
+            </div>
+
+        {% else %}
+            {# Logged-out User View - Apply specific classes #}
+            <div id="login-form" class="form-section login-section"> {# Add login-section class #}
+                <h3>Login</h3>
+                <form action="{{ url_for('login') }}" method="post">
+                    <label for="login_username">Username:</label>
+                    <input type="text" id="login_username" name="username" required>
+
+                    <label for="login_password">Password:</label>
+                    <input type="password" id="login_password" name="password" required>
+
+                    <button type="submit">Login</button>
+                    <span class="toggle-link" onclick="toggleForms()">Don't have an account? Create one.</span>
+                </form>
+            </div>
+
+            <div id="register-form" class="form-section register-section" style="display: none;"> {# Add register-section class #}
+                <h3>Register</h3>
+                <form action="{{ url_for('register') }}" method="post">
+                    <label for="reg_username">Username:</label>
+                    <input type="text" id="reg_username" name="username" required>
+
+                    <label for="reg_password">Password:</label>
+                    <input type="password" id="reg_password" name="password" required>
+
+                    <button type="submit">Register</button>
+                     <span class="toggle-link" onclick="toggleForms()">Already have an account? Login.</span>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleForms() {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+            }
+        }
+
+        // Auto-hide flash messages
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const flashMessages = document.querySelectorAll('#flash-container .flash-messages li');
+            flashMessages.forEach(flash => {
+                setTimeout(() => {
+                    flash.style.opacity = '0';
+                    // Remove the element after the fade-out transition completes
+                    setTimeout(() => {
+                        flash.remove();
+                        const container = document.getElementById('flash-container');
+                        if (container && !container.querySelector('li')) {
+                            // Optionally hide container or remove padding if needed
+                        }
+                    }, 500); // Match transition duration
+                }, 4000); // Start fading out after 4 seconds
+            });
+        });
+    </script>
+
+</body>
+</html>
